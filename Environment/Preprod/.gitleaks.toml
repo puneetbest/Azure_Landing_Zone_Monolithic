@@ -1,0 +1,23 @@
+title = "Custom Gitleaks Rules"
+
+[[rules]]
+id = "generic-password"
+
+description = "Detect hardcoded passwords"
+
+regex = '''(?i)(password|passwd|pwd|secret|token|apikey|client_secret)\s*[:=]\s*["']([^"']+)["']'''
+
+secretGroup = 2
+
+tags = ["password", "terraform"]
+
+[[rules]]
+id = "generic-username"
+
+description = "Detect hardcoded usernames"
+
+regex = '''(?i)(username|user|admin_username|login)\s*[:=]\s*["']([^"']+)["']'''
+
+secretGroup = 2
+
+tags = ["username", "terraform"]
