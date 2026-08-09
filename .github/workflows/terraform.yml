@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   terraform:
@@ -55,4 +56,3 @@ jobs:
       # Generate Terraform plan
       - name: Terraform Plan
         run: terraform plan
-        
