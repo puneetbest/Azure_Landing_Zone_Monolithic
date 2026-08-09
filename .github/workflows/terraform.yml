@@ -32,6 +32,13 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.8
+      # Azure Login
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: be6e1338-5287-4e4a-a50d-a453d84969d8
+          tenant-id: e8d592ab-f2df-4543-882e-e0e0db835e04
+          subscription-id: 370b2d3a-e01b-4f6f-8d7c-760f75894068     
 
       # Check Terraform formatting
       - name: Terraform Format Check
@@ -48,9 +55,4 @@ jobs:
       # Generate Terraform plan
       - name: Terraform Plan
         run: terraform plan
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: be6e1338-5287-4e4a-a50d-a453d84969d8
-          tenant-id: e8d592ab-f2df-4543-882e-e0e0db835e04
-          subscription-id: 370b2d3a-e01b-4f6f-8d7c-760f75894068  
+        
