@@ -57,7 +57,7 @@ resource "azurerm_virtual_machine" "virtual_machine" {
 
     ssh_keys {
       path     = "/home/${each.value.admin_username}/.ssh/authorized_keys"
-      key_data = file("~/.ssh/id_rsa.pub")
+      key_data = var.ssh_public_key
     }
   }
 }
