@@ -12,6 +12,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  pull-requests: read
 
 jobs:
   terraform-ci:
@@ -37,6 +38,8 @@ jobs:
       # ---------------------------------------------------
       - name: Secret Scan - Gitleaks
         uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ---------------------------------------------------
       # 4. IaC Misconfiguration Scan
