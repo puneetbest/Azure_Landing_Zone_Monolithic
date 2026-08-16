@@ -1,6 +1,10 @@
 name: Terraform CI
 
 on:
+  push:
+    branches:
+      - feature/pipeline
+      
   pull_request:
     branches:
       - main
