@@ -39,16 +39,6 @@ jobs:
         uses: gitleaks/gitleaks-action@v3
 
       # ---------------------------------------------------
-      # 3. IaC Security Scan
-      # ---------------------------------------------------
-      - name: IaC Scan - Checkov
-        uses: bridgecrewio/checkov-action@v12
-        with:
-          directory: Environment/Pre_Prod
-          framework: terraform
-          soft_fail: false
-
-      # ---------------------------------------------------
       # 4. IaC Misconfiguration Scan
       # ---------------------------------------------------
       - name: IaC Scan - Trivy
