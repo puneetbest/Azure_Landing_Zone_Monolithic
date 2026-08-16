@@ -13,3 +13,6 @@ variable "puips" {
 variable "vms" {
   type = map(any)
 }
+variable "netsg" {
+  type = map(any)
+}

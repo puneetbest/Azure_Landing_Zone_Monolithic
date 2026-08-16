@@ -29,3 +29,9 @@ module "virtual_machines" {
   vm         = var.vms
 
 }
+
+module "network_seurity_group" {
+  source     = "../../Modules/nsg"
+  depends_on = [module.subnets]
+  nsg        = var.netsg
+}

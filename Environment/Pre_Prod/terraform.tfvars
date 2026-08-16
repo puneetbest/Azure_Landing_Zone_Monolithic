@@ -57,7 +57,6 @@ vms = {
     ip_allocation_method = "Dynamic"
     computer_name        = "frontend"
     admin_username       = "frontend"
-    admin_password       = "test123!"
   }
   vm2 = {
     vm_name              = "backend_vm"
@@ -72,6 +71,12 @@ vms = {
     ip_allocation_method = "Dynamic"
     computer_name        = "backend"
     admin_username       = "backend"
-    admin_password       = "test123!"
+  }
+}
+netsg = {
+  nsg1 = {
+    nsg_name    = "frontend-nsg"
+    rg_location = "centralindia"
+    rg_name     = "apple-rg"
   }
 }
