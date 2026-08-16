@@ -1,0 +1,73 @@
+name: Terraform CD - Pre-Prod
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  terraform-preprod:
+    name: Deploy Terraform to Pre-Prod
+    runs-on: ubuntu-latest
+
+    # GitHub Environment
+    environment:
+      name: Pre-Prod
+
+    defaults:
+      run:
+        working-directory: Environment/Pre_Prod
+
+    steps:
+
+      # ---------------------------------------------------
+      # 1. Checkout merged code
+      # ---------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ---------------------------------------------------
+      # 2. Setup Terraform
+      # ---------------------------------------------------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      # ---------------------------------------------------
+      # 3. Azure Login
+      # ---------------------------------------------------
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: be6e1338-5287-4e4a-a50d-a453d84969d8
+          tenant-id: e8d592ab-f2df-4543-882e-e0e0db835e04
+          subscription-id: 370b2d3a-e01b-4f6f-8d7c-760f75894068
+
+      # ---------------------------------------------------
+      # 4. Terraform Init
+      # ---------------------------------------------------
+      - name: Terraform Init
+        run: terraform init
+
+      # ---------------------------------------------------
+      # 5. Terraform Validate
+      # ---------------------------------------------------
+      - name: Terraform Validate
+        run: terraform validate
+
+      # ---------------------------------------------------
+      # 6. Generate deployment plan
+      # ---------------------------------------------------
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      # ---------------------------------------------------
+      # 7. Apply the exact generated plan
+      # ---------------------------------------------------
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan

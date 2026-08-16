@@ -1,0 +1,90 @@
+name: Terraform CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  terraform-ci:
+    name: Security, Validate and Plan
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Environment/Pre_Prod
+
+    steps:
+
+      # ---------------------------------------------------
+      # 1. Checkout
+      # ---------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ---------------------------------------------------
+      # 2. Secret Scanning
+      # ---------------------------------------------------
+      - name: Secret Scan - Gitleaks
+        uses: gitleaks/gitleaks-action@v3
+
+      # ---------------------------------------------------
+      # 3. IaC Security Scan
+      # ---------------------------------------------------
+      - name: IaC Scan - Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: Environment/Pre_Prod
+          framework: terraform
+          soft_fail: false
+
+      # ---------------------------------------------------
+      # 4. IaC Misconfiguration Scan
+      # ---------------------------------------------------
+      - name: IaC Scan - Trivy
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          format: table
+
+      # ---------------------------------------------------
+      # 5. Terraform
+      # ---------------------------------------------------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      # ---------------------------------------------------
+      # 6. Azure Login
+      # ---------------------------------------------------
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: be6e1338-5287-4e4a-a50d-a453d84969d8
+          tenant-id: e8d592ab-f2df-4543-882e-e0e0db835e04
+          subscription-id: 370b2d3a-e01b-4f6f-8d7c-760f75894068
+
+      # ---------------------------------------------------
+      # 7. Terraform Plan
+      # ---------------------------------------------------
+      - name: Terraform Plan
+        run: terraform plan
