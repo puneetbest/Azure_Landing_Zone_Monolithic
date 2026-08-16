@@ -24,10 +24,10 @@ module "public_ips" {
 }
 
 module "virtual_machines" {
-  depends_on = [module.subnets, module.public_ips]
-  source     = "../../Modules/virtual_machine"
+  depends_on     = [module.subnets, module.public_ips]
+  source         = "../../Modules/virtual_machine"
   ssh_public_key = var.ssh_public_key
-  vm         = var.vms
+  vm             = var.vms
 
 }
 
