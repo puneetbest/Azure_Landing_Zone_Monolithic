@@ -91,4 +91,6 @@ jobs:
       # 7. Terraform Plan
       # ---------------------------------------------------
       - name: Terraform Plan
-        run: terraform plan
+        env:
+            TF_VAR_ssh_public_key: ${{ secrets.AZURE_VM_SSH_PUBLIC_KEY }}
+        run: terraform plan -out=tfplan

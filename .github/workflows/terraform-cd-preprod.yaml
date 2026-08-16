@@ -64,10 +64,14 @@ jobs:
       # 6. Generate deployment plan
       # ---------------------------------------------------
       - name: Terraform Plan
+        env:
+            TF_VAR_ssh_public_key: ${{ secrets.AZURE_VM_SSH_PUBLIC_KEY }}
         run: terraform plan -out=tfplan
 
       # ---------------------------------------------------
       # 7. Apply the exact generated plan
       # ---------------------------------------------------
       - name: Terraform Apply
+        env:
+            TF_VAR_ssh_public_key: ${{ secrets.AZURE_VM_SSH_PUBLIC_KEY }}
         run: terraform apply -auto-approve tfplan
