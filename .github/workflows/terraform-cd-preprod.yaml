@@ -1,0 +1,103 @@
+name: Terraform CD - Pre-Prod
+
+on:
+  # CD runs only after changes reach main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  terraform-preprod:
+    name: Deploy Terraform to Pre-Prod
+    runs-on: ubuntu-latest
+
+    # GitHub Environment
+    environment:
+      name: Pre-Prod
+
+    defaults:
+      run:
+        working-directory: Environment/Pre_Prod
+
+    steps:
+
+      # ===================================================
+      # 1. Checkout merged code
+      # ===================================================
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ===================================================
+      # 2. Secret Scanning - Gitleaks
+      # ===================================================
+      - name: Secret Scan - Gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ===================================================
+      # 3. IaC Security Scan - tfsec
+      # ===================================================
+      - name: IaC Scan - tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: Environment/Pre_Prod
+          soft_fail: false
+
+      # ===================================================
+      # 4. Setup Terraform
+      # ===================================================
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      # ===================================================
+      # 5. Terraform Format Check
+      # ===================================================
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      # ===================================================
+      # 6. Azure Login
+      # ===================================================
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: be6e1338-5287-4e4a-a50d-a453d84969d8
+          tenant-id: e8d592ab-f2df-4543-882e-e0e0db835e04
+          subscription-id: 370b2d3a-e01b-4f6f-8d7c-760f75894068
+
+      # ===================================================
+      # 7. Terraform Init
+      # ===================================================
+      - name: Terraform Init
+        run: terraform init
+
+      # ===================================================
+      # 8. Terraform Validate
+      # ===================================================
+      - name: Terraform Validate
+        run: terraform validate
+
+      # ===================================================
+      # 9. Terraform Plan
+      # ===================================================
+      - name: Terraform Plan
+        env:
+          TF_VAR_ssh_public_key: ${{ secrets.AZURE_VM_SSH_PUBLIC_KEY }}
+        run: terraform plan -out=tfplan
+
+      # ===================================================
+      # 10. Terraform Apply
+      # ===================================================
+      - name: Terraform Apply
+        env:
+          TF_VAR_ssh_public_key: ${{ secrets.AZURE_VM_SSH_PUBLIC_KEY }}
+        run: terraform apply -auto-approve tfplan

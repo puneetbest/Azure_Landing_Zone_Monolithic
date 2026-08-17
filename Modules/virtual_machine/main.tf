@@ -24,7 +24,7 @@ resource "azurerm_network_interface" "NIC" {
     private_ip_address_allocation = each.value.ip_allocation_method
   }
 }
-
+#checkov:skip=CKV2_AZURE_10:Microsoft Antimalware extension is not supported for this Linux VM. Linux endpoint protection is managed through the organization's approved Linux security solut
 resource "azurerm_virtual_machine" "virtual_machine" {
   for_each              = var.vm
   name                  = each.value.vm_name
@@ -32,24 +32,32 @@ resource "azurerm_virtual_machine" "virtual_machine" {
   location              = each.value.rg_location
   network_interface_ids = [resource.azurerm_network_interface.NIC[each.key].id]
   vm_size               = each.value.vm_size
+
   storage_os_disk {
     name              = "${each.key}-osdisk"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-focal"
     sku       = "20_04-lts-gen2"
     version   = "latest"
   }
+
   os_profile {
     computer_name  = each.value.computer_name
     admin_username = each.value.admin_username
-    admin_password = each.value.admin_password
   }
+
   os_profile_linux_config {
-    disable_password_authentication = false
+    disable_password_authentication = true
+
+    ssh_keys {
+      path     = "/home/${each.value.admin_username}/.ssh/authorized_keys"
+      key_data = var.ssh_public_key
+    }
   }
 }

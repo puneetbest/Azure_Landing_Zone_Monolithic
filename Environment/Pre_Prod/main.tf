@@ -24,8 +24,15 @@ module "public_ips" {
 }
 
 module "virtual_machines" {
-  depends_on = [module.subnets, module.public_ips]
-  source     = "../../Modules/virtual_machine"
-  vm         = var.vms
+  depends_on     = [module.subnets, module.public_ips]
+  source         = "../../Modules/virtual_machine"
+  ssh_public_key = var.ssh_public_key
+  vm             = var.vms
 
+}
+
+module "network_seurity_group" {
+  source     = "../../Modules/nsg"
+  depends_on = [module.subnets]
+  nsg        = var.netsg
 }
