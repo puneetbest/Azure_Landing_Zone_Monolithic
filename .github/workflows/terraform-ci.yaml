@@ -1,10 +1,13 @@
 name: Terraform CI
 
 on:
+  # Run CI when Terraform code is pushed to feature branch
   push:
     branches:
       - feature/pipeline
 
+  # Run CI again for the Pull Request to main
+  # This provides the required GitHub status check
   pull_request:
     branches:
       - main
@@ -25,54 +28,48 @@ jobs:
 
     steps:
 
-      # ---------------------------------------------------
+      # ===================================================
       # 1. Checkout
-      # ---------------------------------------------------
+      # ===================================================
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # ---------------------------------------------------
-      # 2. Secret Scanning
-      # ---------------------------------------------------
+      # ===================================================
+      # 2. Secret Scanning - Gitleaks
+      # ===================================================
       - name: Secret Scan - Gitleaks
         uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ---------------------------------------------------
-      # 4. IaC Misconfiguration Scan
-      # ---------------------------------------------------
-      - name: IaC Scan - Trivy
-        uses: aquasecurity/trivy-action@0.35.0
+      # ===================================================
+      # 3. IaC Security Scan - tfsec
+      # ===================================================
+      - name: IaC Scan - tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
         with:
-          scan-type: config
-          scan-ref: .
-          severity: HIGH,CRITICAL
-          exit-code: '1'
-          format: table
+          working_directory: Environment/Pre_Prod
+          soft_fail: false
 
-      # ---------------------------------------------------
-      # 5. Terraform
-      # ---------------------------------------------------
+      # ===================================================
+      # 4. Setup Terraform
+      # ===================================================
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.8
 
+      # ===================================================
+      # 5. Terraform Format Check
+      # ===================================================
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
 
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Validate
-        run: terraform validate
-
-      # ---------------------------------------------------
+      # ===================================================
       # 6. Azure Login
-      # ---------------------------------------------------
+      # ===================================================
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -80,10 +77,22 @@ jobs:
           tenant-id: e8d592ab-f2df-4543-882e-e0e0db835e04
           subscription-id: 370b2d3a-e01b-4f6f-8d7c-760f75894068
 
-      # ---------------------------------------------------
-      # 7. Terraform Plan
-      # ---------------------------------------------------
+      # ===================================================
+      # 7. Terraform Init
+      # ===================================================
+      - name: Terraform Init
+        run: terraform init
+
+      # ===================================================
+      # 8. Terraform Validate
+      # ===================================================
+      - name: Terraform Validate
+        run: terraform validate
+
+      # ===================================================
+      # 9. Terraform Plan
+      # ===================================================
       - name: Terraform Plan
         env:
-            TF_VAR_ssh_public_key: ${{ secrets.AZURE_VM_SSH_PUBLIC_KEY }}
-        run: terraform plan -out=tfplan
+          TF_VAR_ssh_public_key: ${{ secrets.AZURE_VM_SSH_PUBLIC_KEY }}
+        run: terraform plan
